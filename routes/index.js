@@ -6,9 +6,10 @@ router.get('/',(req,res) => {
 })
 router.post('/signup',userController.signup)
 router.post('/login',userController.login);
-router.get('/allGroups', userController.allGroups);
+router.get('/allGroups/:email', userController.allGroups);
 router.get('/allUsers', userController.allUsers);
 router.post('/newCreateGroup', userController.createNewGroup);
 router.get('/lastMessage/:chatroom', userController.lastMessage);
 router.delete('/deleteGroup/:chatroom', userController.deleteGroup);
+router.post('/addUserToGroup', userController.addUserToGroups);
 module.exports = router;

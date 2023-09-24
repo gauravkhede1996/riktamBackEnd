@@ -38,7 +38,8 @@ module.exports.login = async function (req,res) {
 }
 
 module.exports.allGroups = async function(req,res) {
-    let allGroups = await Group.find({}).populate('admin');
+    console.log(req.params.email," is the email we need to find groups");
+    let allGroups = await Group.find({}).populate('admin').populate('allUsers');
     if( !allGroups) {
         return res.status(400).json({
             success: false,
@@ -68,7 +69,7 @@ module.exports.allUsers = async function(req,res) {
 module.exports.createNewGroup = async function(req,res) {
     let admin = await User.findOne({email:req.body.email});
     let adminObjectId = new ObjectId(admin._id);
-    let newlyCreatedGroup = await Group.create({admin: adminObjectId,chatroom: req.body.chatroom });
+    let newlyCreatedGroup = await Group.create({admin: adminObjectId,chatroom: req.body.chatroom,allUsers:[adminObjectId] });
     console.log(newlyCreatedGroup, " is the newly created group");
     if( !newlyCreatedGroup) {
         return res.status(403).json({
@@ -118,4 +119,30 @@ module.exports.deleteGroup = async function(req,res) {
     }
 
     
+}
+
+module.exports.addUserToGroups = async function (req,res) {
+    if ( (req.body.email && req.body.email!=='') && (req.body.chatroom && req.body.chatroom !== '')) {
+        let userFound = await User.findOne({email:req.body.email});
+        let groupFound = await Group.findOne({chatroom: req.body.chatroom}).populate('allUsers');
+        if( userFound && groupFound ) {
+            const userId = new ObjectId(userFound._id);
+            groupFound.allUsers.push(userId);
+            await groupFound.save();
+            return res.status(200).json({
+                success: true,
+                groupFound
+            })
+        }
+        return res.status(500).json({
+            success: false,
+            message: 'Either User not found or Group not Found'
+        })
+        
+    }
+    return res.status(500).json({
+        success: false,
+        message: 'Requested Body content is not valid'
+    })
+   
 }
